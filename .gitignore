@@ -1,5 +1,7 @@
 #Ignore all data
 /data/BraTS2020_training_data/
+# Ignore all data
+data/
 
 #Zip files
 *.zip
