@@ -3,6 +3,9 @@
 # Ignore all data
 data/
 
+checkpoints/
+epoch_visuals/
+
 #Zip files
 *.zip
 
