@@ -231,7 +231,7 @@ def main():
     # test_best_model_saved()
     # test_train_output_exists()
     # test_model_forward_pass()
-    train_module.train(test_mode=False)
+    train_module.train( run_number=3, sample_size=100, batch_size=1, test_mode=False)
 
 
 

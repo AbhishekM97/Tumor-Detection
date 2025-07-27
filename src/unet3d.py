@@ -41,7 +41,7 @@ class UNet3D(nn.Module):
         self.final_conv = nn.Conv3d(32, out_channels, kernel_size=1)
 
     def forward(self, x):
-        print("in forward")
+        # print("in forward")
         if self.training:
             enc1 = checkpoint(self.enc1, x, use_reentrant=False)
             enc2 = checkpoint(self.enc2, self.pool1(enc1), use_reentrant=False)
