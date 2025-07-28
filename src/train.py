@@ -5,9 +5,9 @@ import torch.optim as optim
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend to avoid tkinter errors
 import matplotlib.pyplot as plt
+from torch.cuda.amp import GradScaler, autocast
 from src.data_loader import get_data_loaders, BRATSDataset
 from src.unet3d import UNet3D
-from torch.cuda.amp import GradScaler, autocast
 
 def dice_score(pred, target, epsilon=1e-6):
     pred = torch.argmax(pred, dim=1)
@@ -183,7 +183,9 @@ def train(test_mode=False, batch_size=1, run_number=1, sample_size=30):
 
         
         scheduler.step(val_dice)
-        visualize_volume_prediction(model, val_loader.dataset, device, idx=0, epoch=epoch+1, run_number=run_number, sample_size=sample_size)
+
+        if epoch % 5 == 0:
+            visualize_volume_prediction(model, val_loader.dataset, device, idx=0, epoch=epoch+1, run_number=run_number, sample_size=sample_size)
 
 
     save_model(model.state_dict(), "checkpoints/final_model.pth")
