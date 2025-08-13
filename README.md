@@ -51,13 +51,21 @@ To develop a deep learning model capable of accurately segmenting brain tumors f
 
 ## 📂 Repository Structure
 ├── src/ # Training and evaluation scripts
+
 ├── models/ # Model architectures
+
 ├── data/ # Data loading utilities (no raw data)
+
 ├── outputs/ # Saved model checkpoints & logs
+
 ├── images/ # Result visualizations
+
 ├── report.pdf # Technical report
+
 ├── presentation.pdf # Project presentation slides
+
 ├── requirements.txt # Dependencies
+
 └── README.md # Project documentation
 
 
