@@ -24,7 +24,7 @@ from src.data_visualizer import VolumeVisualizer
 from src.data_loader import BRATSDataset
 from src.unet3d import UNet3D
 
-def test_data_visualizer():
+def test_data_visualizer(two_d=False, three_d=False):
     # Set your BraTS data path here
     data_path = "data/BraTS2020_TrainingData/MICCAI_BraTS2020_TrainingData"
 
@@ -35,19 +35,21 @@ def test_data_visualizer():
     sample = simple_dataset[0]  # Index into the dataset directly
     image = sample['image'].numpy()
     mask = sample['seg'].numpy()
-
-    # Test 2D slice visualization
-    VolumeVisualizer.show_slices(image, mask, slice_indices=[60])
-    VolumeVisualizer.visualize_modalities_side_by_side(image, mask)
-    VolumeVisualizer.show_slices_side_by_side(image, image, mask, slice_idx=60)
-    VolumeVisualizer.show_histograms(image, normalized_image=image)
-
-    # Test 3D visualization
-    VolumeVisualizer.visualize_modality_3d(image[0], mask)
-    VolumeVisualizer.visualize_all_modalities_3d(image, mask)
-    VolumeVisualizer.visualize_image_and_mask_3d(image[0], mask)
-    VolumeVisualizer.visualize_modalities_separate_grids(image, mask)
-    VolumeVisualizer.visualize_all_modalities_with_mask_3d(image, mask)
+    if two_d:
+        # Test 2D slice visualization
+        VolumeVisualizer.show_slices(image, mask, slice_indices=[60])
+        VolumeVisualizer.visualize_modalities_side_by_side(image, mask)
+        VolumeVisualizer.show_slices_side_by_side(image, image, mask, slice_idx=60)
+        VolumeVisualizer.show_histograms(image, normalized_image=image)
+    if three_d:
+        # Test 3D visualization
+        VolumeVisualizer.visualize_modality_3d(image[0], mask)
+        VolumeVisualizer.record_multiple_views(image[0], mask, "T1_volume")
+        VolumeVisualizer.record_rotation_animation(image[0], mask, "T1_volume")
+        # VolumeVisualizer.visualize_all_modalities_3d(image, mask)
+        # VolumeVisualizer.visualize_image_and_mask_3d(image[0], mask)
+        # VolumeVisualizer.visualize_modalities_separate_grids(image, mask)
+        # VolumeVisualizer.visualize_all_modalities_with_mask_3d(image, mask)
 
 # test_unet3d.py
 import torch
@@ -224,15 +226,14 @@ def test_model_forward_pass():
 def main():
     # test_model_output()
     # test_multiple_volumes("data\BraTS2020_TrainingData\MICCAI_BraTS2020_TrainingData")
-    # test_data_visualizer()
+    # test_data_visualizer(two_d=False, three_d=True)
     # test_gpu()
-    # test_model_output_shape()
+    test_model_output_shape()
     # test_model_saves_checkpoint()
     # test_best_model_saved()
     # test_train_output_exists()
     # test_model_forward_pass()
-    train_module.train( run_number=3, sample_size=100, batch_size=1, test_mode=False)
-
+    # train_module.train( run_number=3, sample_size=100, batch_size=1, test_mode=False)
 
 
 

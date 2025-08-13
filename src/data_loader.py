@@ -91,6 +91,41 @@ import nibabel as nib
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, Subset, random_split
+import random
+
+class BRATSTransform:
+    """Data augmentation transforms for BraTS dataset"""
+    def __init__(self, p_flip=0.5, p_rotate=0.5, p_noise=0.3):
+        self.p_flip = p_flip
+        self.p_rotate = p_rotate
+        self.p_noise = p_noise
+    
+    def __call__(self, sample):
+        image, seg = sample['image'], sample['seg']
+        
+        # Random horizontal flip
+        if random.random() < self.p_flip:
+            image = torch.flip(image, dims=[2])  # Flip height dimension
+            seg = torch.flip(seg, dims=[1])
+        
+        # Random vertical flip
+        if random.random() < self.p_flip:
+            image = torch.flip(image, dims=[3])  # Flip width dimension
+            seg = torch.flip(seg, dims=[2])
+        
+        # Random rotation (90, 180, 270 degrees)
+        if random.random() < self.p_rotate:
+            k = random.choice([1, 2, 3])  # 90, 180, 270 degrees
+            image = torch.rot90(image, k=k, dims=[2, 3])  # Rotate height and width
+            seg = torch.rot90(seg, k=k, dims=[1, 2])
+        
+        # Add random noise to image
+        if random.random() < self.p_noise:
+            noise = torch.randn_like(image) * 0.01
+            image = image + noise
+        
+        return {'image': image, 'seg': seg, 'id': sample['id']}
+
 
 class BRATSDataset(Dataset):
     def __init__(self, root_dir, modalities=('flair', 't1', 't1ce', 't2'), transform=None):
@@ -143,7 +178,7 @@ class BRATSDataset(Dataset):
 
 # Snippet of get_data_loaders definition from your data_loader.py
 
-def get_data_loaders(train_dir, batch_size=1, val_split=0.2, train_test_split=False, sample_size=None, test_mode=False):
+def get_data_loaders(train_dir, batch_size=1, val_split=0.2, train_test_split=False, sample_size=None, test_mode=False, train_transform=None, val_transform=None):
     full_dataset = BRATSDataset(train_dir)
 
     if sample_size is not None and sample_size < len(full_dataset):
@@ -161,6 +196,12 @@ def get_data_loaders(train_dir, batch_size=1, val_split=0.2, train_test_split=Fa
         train_set, val_set, test_set = torch.utils.data.random_split(
             sampled_dataset, [train_size, val_size, test_size]
         )
+        
+        # Apply transforms to datasets
+        if train_transform:
+            train_set.dataset.transform = train_transform
+        if val_transform:
+            val_set.dataset.transform = val_transform
 
         train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
         val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)

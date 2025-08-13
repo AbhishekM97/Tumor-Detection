@@ -155,3 +155,85 @@ class VolumeVisualizer:
         plotter.add_volume(mask_grid)
         plotter.add_title(mask_title)
         plotter.show()
+
+    @staticmethod
+    def record_multiple_views(volume, mask=None, title="MRI Volume"):
+        """Record multiple camera angles with proper camera positioning"""
+        import os
+        os.makedirs("pyvista_exports/views", exist_ok=True)
+        
+        grid = pv.ImageData()
+        grid.dimensions = np.array(volume.shape) + 1
+        grid.spacing = (1, 1, 1)
+        grid.origin = (0, 0, 0)
+        grid.cell_data["intensity"] = volume.flatten(order="F")
+        
+        # Different camera positions for distinct views
+        views = {
+            'front': {'position': (0, 0, 2), 'focal_point': (0, 0, 0), 'view_up': (0, 1, 0)},
+            'side': {'position': (2, 0, 0), 'focal_point': (0, 0, 0), 'view_up': (0, 0, 1)},
+            'top': {'position': (0, 2, 0), 'focal_point': (0, 0, 0), 'view_up': (0, 0, 1)},
+            'angle': {'position': (1.5, 1.5, 1.5), 'focal_point': (0, 0, 0), 'view_up': (0, 0, 1)}
+        }
+        
+        for view_name, camera_params in views.items():
+            # Create new plotter for each view to ensure clean state
+            plotter = pv.Plotter(off_screen=True, window_size=[800, 600])
+            plotter.add_volume(grid)
+            
+            if mask is not None:
+                mask_grid = pv.ImageData()
+                mask_grid.dimensions = np.array(mask.shape) + 1
+                mask_grid.spacing = (1, 1, 1)
+                mask_grid.origin = (0, 0, 0)
+                mask_grid.cell_data["mask"] = mask.flatten(order="F")
+                plotter.add_volume(mask_grid, cmap="Reds", show_scalar_bar=True)
+            
+            # Set camera position explicitly
+            plotter.camera.position = camera_params['position']
+            plotter.camera.focal_point = camera_params['focal_point']
+            plotter.camera.up = camera_params['view_up']
+            
+            # Reset camera to ensure changes take effect
+            plotter.reset_camera()
+            
+            filename = f"pyvista_exports/views/{title}_{view_name}.png"
+            plotter.screenshot(filename)
+            print(f"View saved: {filename}")
+        
+        plotter.close()
+
+    @staticmethod
+    def record_rotation_animation(volume, mask=None, title="MRI Volume", filename="rotation.gif"):
+        """Record a 360-degree rotation animation"""
+        import os
+        os.makedirs("pyvista_exports", exist_ok=True)
+        
+        grid = pv.ImageData()
+        grid.dimensions = np.array(volume.shape) + 1
+        grid.spacing = (1, 1, 1)
+        grid.origin = (0, 0, 0)
+        grid.cell_data["intensity"] = volume.flatten(order="F")
+        
+        plotter = pv.Plotter(off_screen=True, window_size=[800, 600])
+        plotter.add_volume(grid)
+        
+        if mask is not None:
+            mask_grid = pv.ImageData()
+            mask_grid.dimensions = np.array(mask.shape) + 1
+            mask_grid.spacing = (1, 1, 1)
+            mask_grid.origin = (0, 0, 0)
+            mask_grid.cell_data["mask"] = mask.flatten(order="F")
+            plotter.add_volume(mask_grid, cmap="Reds", show_scalar_bar=True)
+        
+        # Record rotation animation
+        filepath = f"pyvista_exports/{filename}"
+        plotter.open_gif(filepath)
+        
+        # Rotate 360 degrees
+        for angle in range(0, 360, 10):
+            plotter.camera.azimuth = angle
+            plotter.write_frame()
+        
+        plotter.close()
+        print(f"Animation saved: {filepath}")
